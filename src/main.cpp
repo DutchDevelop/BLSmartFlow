@@ -1,40 +1,14 @@
 #include <Arduino.h>
-#include "./blled/web-server.h"
-#include "./blled/mqttmanager.h"
-#include "./blled/filesystem.h"
-#include "./blled/types.h"
-#include "./blled/leds.h"
-#include "./blled/serialmanager.h"
-#include "./blled/wifi-manager.h"
-#include "./blled/ssdp.h"
+#include "./blflow/web-server.h"
+#include "./blflow/mqttmanager.h"
+#include "./blflow/filesystem.h"
+#include "./blflow/types.h"
+#include "./blflow/fans.h"
+#include "./blflow/serialmanager.h"
+#include "./blflow/wifi-manager.h"
+#include "./blflow/ssdp.h"
 
 int wifi_reconnect_count = 0;
-void defaultcolors(){
-    Serial.println(F("Setting default customisable colors"));
-    printerConfig.runningColor = hex2rgb("#000000",255,255);//WHITE Running
-    printerConfig.testColor = hex2rgb("#3F3CFB");           //Violet Test
-    printerConfig.finishColor = hex2rgb("#00FF00");         //Green Finish
-
-    printerConfig.stage14Color = hex2rgb("#000000");        //OFF Cleaning Nozzle
-    printerConfig.stage1Color = hex2rgb("#000055");         //OFF Bed Leveling
-    printerConfig.stage8Color = hex2rgb("#000000");         //OFF Calibrating Extrusion
-    printerConfig.stage9Color = hex2rgb("#000000");         //OFF Scanning Bed Surface
-    printerConfig.stage10Color = hex2rgb("#000000");        //OFF First Layer Inspection
-
-    printerConfig.wifiRGB = hex2rgb("#FFA500");             //Orange Wifi Scan
-    
-    printerConfig.pauseRGB = hex2rgb("#0000FF");            //Blue Pause
-    printerConfig.firstlayerRGB = hex2rgb("#0000FF");       //Blue
-    printerConfig.nozzleclogRGB = hex2rgb("#0000FF");       //Blue
-    printerConfig.hmsSeriousRGB = hex2rgb("#FF0000");       //Red
-    printerConfig.hmsFatalRGB = hex2rgb("#FF0000");         //Red
-    printerConfig.filamentRunoutRGB = hex2rgb("#FF0000");   //Red
-    printerConfig.frontCoverRGB = hex2rgb("#FF0000");       //Red
-    printerConfig.nozzleTempRGB = hex2rgb("#FF0000");       //Red
-    printerConfig.bedTempRGB = hex2rgb("#FF0000");          //Red
-
-
-}
 
 void setup(){
     Serial.begin(115200);
@@ -46,24 +20,20 @@ void setup(){
     Serial.print(globalVariables.FWVersion);
     Serial.println(F(" **"));
     Serial.println("");
-    defaultcolors();
-    setupLeds();
-    tweenToColor(100,100,100,100,100); //ALL LEDS ON
-    Serial.println(F(""));
+    
+    fansetup();
+
     delay(1000);
 
-    tweenToColor(255,0,0,0,0); //RED
     setupFileSystem();
     loadFileSystem();
     Serial.println(F(""));
     delay(500);
 
-    tweenToColor(printerConfig.wifiRGB); //Customisable - Default is ORANGE
     setupSerial();
 
     if (strlen(globalVariables.SSID) == 0 || strlen(globalVariables.APPW) == 0) {
         Serial.println(F("SSID or password is missing. Please configure both by going to: https://dutchdevelop.com/blled-configuration-setup/"));
-        tweenToColor(100,0,100,0,0); //PINK
         return;
     }
    
@@ -72,13 +42,9 @@ void setup(){
         return;
     }
 
-    tweenToColor(0,0,255,0,0); //BLUE
     setupWebserver();
     delay(500);
-
     start_ssdp();
-    
-    tweenToColor(34,224,238,0,0); //CYAN
     setupMqtt();
 
     Serial.println();
@@ -88,16 +54,15 @@ void setup(){
     Serial.println(F(" **"));
     Serial.println();
     globalVariables.started = true;
-    Serial.println(F("Updating LEDs from Setup"));
-    updateleds();
 }
 
 void loop(){
+    fanloop(); //Run fanloop at the start of the loop so its alwayts updating before everything else.
     serialLoop();
+
     if (globalVariables.started){
         mqttloop();
         webserverloop();
-        ledsloop();
         
         if (WiFi.status() != WL_CONNECTED){
             Serial.print(F("Wifi connection dropped.  "));
@@ -121,9 +86,7 @@ void loop(){
     if(printerConfig.rescanWiFiNetwork)
     {
         Serial.println(F("Web submitted refresh of Wifi Scan (assigning Strongest AP)"));
-        tweenToColor(printerConfig.wifiRGB); //Customisable - Default is ORANGE
         scanNetwork(); //Sets the MAC address for following connection attempt
         printerConfig.rescanWiFiNetwork = false;
-        updateleds();
     }
 }

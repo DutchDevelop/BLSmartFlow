@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Temperature vs Fan Speed</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --color-black: black;
+      --color-cod-gray: #101010;
+      --color-white: white;
+      --color-error: rgb(191, 95, 95);
+      --color-primary: rgb(68, 100, 136);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background-color: var(--color-black);
+      font-family: Arial, sans-serif;
+      color: var(--color-white);
+    }
+
+    #particleCanvas {
+      position: fixed;
+      top: 0; 
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1; 
+      background: rgb(28, 75, 114); 
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-right: 20px;
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--color-white);
+      text-shadow: 1px 1px var(--color-black);
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--color-white);
+      color: var(--color-black);
+      transition: background 0.3s;
+    }
+    .tab-btn:hover {
+      background-color: rgb(186, 215, 255);
+    }
+    .tab-btn.active {
+      background-color: rgb(56, 137, 229);
+      color: rgb(255, 255, 255);
+      font-weight: bold;
+    }
+
+    /* TAB CONTENT */
+    .tab-content {
+      display: none;
+      width: 100%;
+    }
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* FORM + CHART WRAPPER (Fan Graph Tab) */
+    .form-container {
+      background-color: var(--color-white);
+      color: var(--color-black);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+    }
+
+    .chart-container {
+      width: 500px; 
+      max-width: 100%;
+      margin: 0 auto 2rem;
+      text-align: center;
+    }
+    .chart-container canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .controls {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: left;
+      border: 1px solid #ccc;
+      padding: 1em;
+      border-radius: 8px;
+    }
+    .controls h2 {
+      margin-top: 0;
+      margin-bottom: 0.5em;
+    }
+    .controls label {
+      display: inline-block;
+      width: 150px;
+      margin-bottom: 0.5em;
+    }
+    .controls input[type="number"] {
+      width: 100px;
+      margin-right: 10px;
+    }
+    .controls button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: var(--color-primary);
+      color: var(--color-white);
+      transition: background 0.3s;
+    }
+    .controls button:hover {
+      background: rgb(119, 152, 190);
+    }
+    .controls .section {
+      margin-bottom: 1.5em;
+    }
+
+    /* TOGGLE BUTTONS (Second Tab) */
+    .toggles-container {
+      background-color: var(--color-white);
+      color: var(--color-black);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    /* A simple switch style (optional) */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px; 
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--color-primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- Main Container -->
+  <div class="container">
+
+    <!-- Logo -->
+    <div class='logo-container'>
+      <img class='logo' src='https://raw.githubusercontent.com/DutchDevelop/BLLEDController/main/src/www/Icon-square.png' alt='Logo'>
+      <span class='logo-text'>BLFAN Controller</span>
+    </div>
+
+    <!-- Tab Buttons -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="fanGraphTab">Fan Graph</button>
+      <button class="tab-btn" data-tab="toggleTab">Settings</button>
+    </div>
+
+    <!-- TAB 1: Fan Graph & Controls -->
+    <div id="fanGraphTab" class="tab-content active">
+      <div class='form-container'>
+        <div class="chart-container">
+          <canvas id="myChart"></canvas>
+        </div>
+        <div class="controls">
+          <h2>Manage Data Points</h2>
+          <div class="section">
+            <button id="createPointBtn">Create New Point</button>
+          </div>
+          <div class="section" id="editSection" style="display:none;">
+            <h3>Selected Point</h3>
+            <label for="edit-temp">Temperature (°C):</label>
+            <input 
+              id="edit-temp" 
+              type="number" 
+              min="0" 
+              max="400" 
+              step="1" 
+              placeholder="e.g. 75" 
+            >
+            <br/>
+            <label for="edit-speed">Fan Speed (%):</label>
+            <input 
+              id="edit-speed" 
+              type="number" 
+              min="0" 
+              max="100" 
+              step="1" 
+              placeholder="e.g. 40" 
+            >
+            <br/>
+            <button id="editPointBtn">Change</button>
+            <button id="removePointBtn" style="background: var(--color-error);">
+              Remove
+            </button>
+          </div>
+        </div>
+        <div class="section">
+          <div>Nozzle Temperature: <span id="tempValue">-</span> °C</div>
+          <div>Fan Speed: <span id="speedValue">-</span> %</div>
+        </div>
+      </div><!-- .form-container -->
+    </div>
+    
+    <!-- TAB 2: Toggle Buttons -->
+    <div id="toggleTab" class="tab-content">
+      <div class="toggles-container">
+        <h2>Some Toggles</h2>
+        <label class="switch">
+          <input type="checkbox" id="toggle1">
+          <span class="slider round"></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle2">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+  </div> <!-- .container -->
+
+  <!-- Tab-Switching Script -->
+  <script>
+    // Simple tab switching logic
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove 'active' from all buttons & tab contents
+        tabButtons.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(tc => tc.classList.remove('active'));
+
+        // Add 'active' to the clicked button
+        btn.classList.add('active');
+        // Show the corresponding tab content
+        const targetTab = document.getElementById(btn.dataset.tab);
+        if (targetTab) {
+          targetTab.classList.add('active');
+        }
+      });
+    });
+  </script>
+
+  <!-- Existing Script for Fan Graph, Data Fetching, Particles, etc. -->
+  <script>
+    var data = {
+      "points": [
+        { "temp": 0,    "speed": 0   },
+        { "temp": 50,   "speed": 0   },
+        { "temp": 120,  "speed": 35  },
+        { "temp": 220,  "speed": 70  },
+        { "temp": 325,  "speed": 100 },
+        { "temp": 400,  "speed": 100 }
+      ]
+    };
+
+    function getInterpolatedSpeed(temp) {
+      const points = data.points;
+      if (temp <= points[0].temp) {
+        return points[0].speed;
+      }
+      if (temp >= points[points.length - 1].temp) {
+        return points[points.length - 1].speed;
+      }
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        if (temp >= p1.temp && temp <= p2.temp) {
+          const ratio = (temp - p1.temp) / (p2.temp - p1.temp);
+          return p1.speed + ratio * (p2.speed - p1.speed);
+        }
+      }
+      return 0;
+    }
+
+    function fetchFanConfig() {
+      console.log("Fetching fan data from /getFanConfig...");
+      fetch("/getFanConfig")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+          }
+          return response.json();
+        })
+        .then(jsonData => {
+          if (jsonData && jsonData.points) {
+            data.points = jsonData.points;
+            console.log("Fetched config:", data.points);
+            updateChart();
+          } else {
+            console.error("Invalid JSON structure returned:", jsonData);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching /getFanConfig:", error);
+        });
+    }
+
+    function fetchSensorData(){
+      fetch("/sensorData")
+      .then(response => response.json())
+      .then(json => {
+        document.getElementById('tempValue').textContent = json.temp;
+        document.getElementById('speedValue').textContent = json.speed;
+      })
+      .catch(err => console.error("Error fetching sensor data:", err));
+    }
+
+    var selectedIndex = null;
+    var myChart;
+
+    function sortPoints() {
+      data.points.sort((a, b) => a.temp - b.temp);
+    }
+
+    function getChartDataPoints() {
+      return data.points.map(p => ({ x: p.temp, y: p.speed }));
+    }
+
+    function refreshStyles() {
+      const totalPoints = data.points.length;
+      const bgColors = [];
+      const radii = [];
+
+      for (let i = 0; i < totalPoints; i++) {
+        if (i === selectedIndex) {
+          bgColors.push('red'); 
+          radii.push(8);
+        } else {
+          bgColors.push('blue');
+          radii.push(5);
+        }
+      }
+      myChart.data.datasets[0].pointBackgroundColor = bgColors;
+      myChart.data.datasets[0].pointRadius = radii;
+    }
+
+    function updateFanConfig() {
+      const formData = new URLSearchParams();
+      formData.append("points", JSON.stringify(data));
+
+      fetch("/updateFanConfig", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+      })
+        .then(response => response.text())
+        .then(text => console.log("Server response:", text))
+        .catch(error => console.error("Error updating fan config:", error));
+    }
+
+    function showEditSection() {
+      document.getElementById('editSection').style.display = 'block';
+    }
+    function hideEditSection() {
+      document.getElementById('editSection').style.display = 'none';
+    }
+
+    function updateChart() {
+      myChart.data.datasets[0].data = getChartDataPoints();
+      refreshStyles();         
+      myChart.update();
+    }
+
+    function initChart() {
+      var fanCurveDataset = [{
+        data: getChartDataPoints(),
+        borderColor: 'blue',
+        backgroundColor: 'rgba(0, 0, 255, 0.1)',
+        fill: false
+      }];
+
+      var config = {
+        type: 'line',
+        data: { datasets: fanCurveDataset },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'bottom',
+              min: 0,
+              max: 400,
+              title: {
+                display: false
+              }
+            },
+            y: {
+              type: 'linear',
+              min: 0,
+              max: 100,
+              title: {
+                display: false
+              }
+            }
+          },
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              const firstElement = elements[0];
+              const index = firstElement.index;
+              selectedIndex = index; 
+
+              const chartData = myChart.data.datasets[0].data;
+              const dataPoint = chartData[index];
+
+              showEditSection();
+
+              document.getElementById('edit-temp').value = dataPoint.x;
+              document.getElementById('edit-speed').value = dataPoint.y;
+
+              refreshStyles();
+              myChart.update();
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: () => '',
+                label: function(context) {
+                  const xVal = context.parsed.x;
+                  const yVal = context.parsed.y;
+                  return `Temp: ${xVal}, Speed: ${yVal}`;
+                }
+              }
+            }
+          }
+        }
+      };
+
+      myChart = new Chart(document.getElementById('myChart'), config);
+      refreshStyles();
+      myChart.update();
+    }
+
+    hideEditSection();
+
+    document.getElementById('createPointBtn').addEventListener('click', function() {
+      const defaultTemp = 25;
+      const defaultSpeed = 50;
+
+      data.points.push({ temp: defaultTemp, speed: defaultSpeed });
+      sortPoints();
+      selectedIndex = data.points.findIndex(p => p.temp === defaultTemp && p.speed === defaultSpeed);
+
+      updateChart();
+      updateFanConfig();
+
+      showEditSection();
+      document.getElementById('edit-temp').value = defaultTemp;
+      document.getElementById('edit-speed').value = defaultSpeed;
+    });
+
+    document.getElementById('editPointBtn').addEventListener('click', function() {
+      if (selectedIndex === null) {
+        alert("Please select (or create) a point first.");
+        return;
+      }
+
+      const tempInput = document.getElementById('edit-temp');
+      const speedInput = document.getElementById('edit-speed');
+      const newTemp = parseFloat(tempInput.value);
+      const newSpeed = parseFloat(speedInput.value);
+
+      if (isNaN(newTemp) || isNaN(newSpeed)) {
+        alert("Please enter valid numbers for temperature and speed.");
+        return;
+      }
+
+      data.points[selectedIndex].temp = newTemp;
+      data.points[selectedIndex].speed = newSpeed;
+
+      sortPoints();
+      selectedIndex = data.points.findIndex(p => p.temp === newTemp && p.speed === newSpeed);
+
+      updateChart();
+      updateFanConfig();
+    });
+
+    document.getElementById('removePointBtn').addEventListener('click', function() {
+      if (selectedIndex === null) {
+        alert("Please select (or create) a point first.");
+        return;
+      }
+
+      data.points.splice(selectedIndex, 1);
+      selectedIndex = null;
+
+      hideEditSection();
+      document.getElementById('edit-temp').value = '';
+      document.getElementById('edit-speed').value = '';
+
+      updateChart();
+      updateFanConfig();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchSensorData();
+      setInterval(fetchSensorData,5000);
+      initChart();
+      fetchFanConfig();
+    });
+  </script>
+
+  <!-- PARTICLE BACKGROUND SCRIPT -->
+  <script>
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particlesArray = [];
+    const numberOfParticles = 100;
+
+    class Particle {
+      constructor(x, y, directionX, directionY, size, color) {
+        this.x = x;
+        this.y = y;
+        this.directionX = directionX;
+        this.directionY = directionY;
+        this.size = size;
+        this.color = color;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+      update() {
+        if (this.x + this.size > canvas.width || this.x - this.size < 0) {
+          this.directionX = -this.directionX;
+        }
+        if (this.y + this.size > canvas.height || this.y - this.size < 0) {
+          this.directionY = -this.directionY;
+        }
+        this.x += this.directionX;
+        this.y += this.directionY;
+        this.draw();
+      }
+    }
+
+    function init() {
+      particlesArray = [];
+      for (let i = 0; i < numberOfParticles; i++) {
+        const size = Math.random() * 5 + 1;
+        const x = Math.random() * (canvas.width - size * 2) + size;
+        const y = Math.random() * (canvas.height - size * 2) + size;
+        const directionX = (Math.random() * 0.5) - 0.25;
+        const directionY = (Math.random() * 0.5) - 0.25;
+        const color = 'rgba(255, 255, 255, 0.8)';
+        particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+      }
+    }
+
+    function connect() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a; b < particlesArray.length; b++) {
+          let distance = (particlesArray[a].x - particlesArray[b].x) ** 2 
+                       + (particlesArray[a].y - particlesArray[b].y) ** 2;
+          if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+            let opacityValue = 1 - (distance / 20000);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${opacityValue})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].update();
+      }
+      connect();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    });
+
+    init();
+    animate();
+  </script>
+</body>
+</html>

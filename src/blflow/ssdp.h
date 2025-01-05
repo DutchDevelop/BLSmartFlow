@@ -12,10 +12,10 @@ void start_ssdp(){
     SSDP.setSchemaURL("description.xml");
     SSDP.setHTTPPort(80);
     SSDP.setDeviceType("urn:schemas-upnp-org:device:DimmableLight:1");
-    SSDP.setName("BLLED Controller");
+    SSDP.setName("BLFAN Controller");
     SSDP.setSerialNumber(WiFi.macAddress().c_str());
     SSDP.setURL("/");
-    SSDP.setModelName("BLLED ESP32");
+    SSDP.setModelName("BLFAN ESP32");
     SSDP.setModelNumber("1.0");
     SSDP.setManufacturer("DutchDeveloper");
     SSDP.setManufacturerURL("https://dutchdevelop.com");

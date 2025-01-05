@@ -1,0 +1,46 @@
+#ifndef _FAN
+#define _Fan
+
+#include "types.h"
+
+const int FanPower1 = 17;
+const int FanPower2 = 16;
+
+int fanSpeed = 0; 
+
+void fansetup(){
+    pinMode(FanPower1, OUTPUT);
+    pinMode(FanPower2, OUTPUT);
+}
+
+void fanloop(){
+
+    float temperature = printerVariables.nozzletemp;
+
+    fanSpeed = 0;
+    for (size_t i = 1; i < printerConfig.fanGraph.size(); i++) {
+        if (temperature <= printerConfig.fanGraph[i].first) {
+        float t1 = printerConfig.fanGraph[i - 1].first;
+        float t2 = printerConfig.fanGraph[i].first;
+        int s1 = printerConfig.fanGraph[i - 1].second;
+        int s2 = printerConfig.fanGraph[i].second;
+        fanSpeed = s1 + (temperature - t1) * (s2 - s1) / (t2 - t1);
+        break;
+        }
+    }
+    if (temperature >= printerConfig.fanGraph.back().first) {
+        fanSpeed = printerConfig.fanGraph.back().second;
+    }
+
+    globalVariables.fanSpeed = map(fanSpeed, 0, 100, 0, 255);
+
+    analogWrite(FanPower1,globalVariables.fanSpeed);
+    analogWrite(FanPower2,globalVariables.fanSpeed);
+
+    Serial.println("pwm speed");
+    Serial.println(map(fanSpeed, 0, 100, 0, 255));
+    Serial.println("temp");
+    Serial.println(temperature);
+};
+
+#endif
