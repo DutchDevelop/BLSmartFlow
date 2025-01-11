@@ -18,7 +18,7 @@ extern "C"
     typedef struct GlobalVariablesStruct{
         char SSID[32];
         char APPW[63];
-        String FWVersion = "Alpha 0.0.1";
+        String FWVersion = "Stable 2025.1.11";
         String Host = "BLFLOW";
         bool started = false;
         int fanSpeed = 0;
@@ -38,6 +38,9 @@ extern "C"
         bool debuging = true;          //Debugging for all interactions through functions
         bool debugingchange = true;     //Default debugging level - to shows onChange
         bool mqttdebug = false;         //Writes each packet from BBLP to the serial log
+
+        bool staticFan = false;  
+        int staticFanSpeed = 0;
 
         std::vector<std::pair<float, int>> fanGraph = { //Basic fan speed profile
             {0, 0},

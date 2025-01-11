@@ -31,16 +31,17 @@ void fanloop(){
     if (temperature >= printerConfig.fanGraph.back().first) {
         fanSpeed = printerConfig.fanGraph.back().second;
     }
+    
+    if (printerConfig.staticFan){
+        fanSpeed = printerConfig.staticFanSpeed;
+    }
 
-    globalVariables.fanSpeed = map(fanSpeed, 0, 100, 0, 255);
+    int rpm = map(fanSpeed, 0, 100, 0, 255);
 
-    analogWrite(FanPower1,globalVariables.fanSpeed);
-    analogWrite(FanPower2,globalVariables.fanSpeed);
-
-    Serial.println("pwm speed");
-    Serial.println(map(fanSpeed, 0, 100, 0, 255));
-    Serial.println("temp");
-    Serial.println(temperature);
+    globalVariables.fanSpeed = fanSpeed;
+    
+    analogWrite(FanPower1,rpm);
+    analogWrite(FanPower2,rpm);
 };
 
 #endif

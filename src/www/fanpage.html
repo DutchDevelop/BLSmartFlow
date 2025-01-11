@@ -54,17 +54,47 @@
       margin-bottom: 1rem;
     }
 
-    .logo {
-      width: 80px;
-      height: 80px;
-      margin-right: 20px;
-    }
-
     .logo-text {
       font-size: 2rem;
       font-weight: bold;
       color: var(--color-white);
       text-shadow: 1px 1px var(--color-black);
+    }
+
+    .fan-stack {
+      position: relative;
+      display: inline-block; 
+      width: 80px;
+      height: 80px;
+      margin-right: 20px;
+      overflow: hidden;
+    }
+
+    .fan-stack img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 80px;            
+      height: 80px;           
+      object-fit: contain;
+    }
+
+    .fanshell {
+      z-index: 1;
+    }
+
+    .fanblades {
+      z-index: 2;
+      transform-origin: 50% 50%;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     /* TABS */
@@ -101,9 +131,39 @@
       flex-direction: column;
       align-items: center;
     }
+    /*Options Tab) */
 
-    /* FORM + CHART WRAPPER (Fan Graph Tab) */
-    .form-container {
+    form label {
+      width: 100%;
+      font-weight: bold;
+      font-size: 16px;
+      color: #333;
+    }
+
+    form input[type='text'] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    
+    form input[type='submit'] {
+      background-color: rgb(56, 137, 229);
+      color: rgb(255, 255, 255);
+      font-weight: bold;
+
+      margin: .15rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    /*CHART WRAPPER (Fan Graph Tab) */
+    .fangraph-container {
       background-color: var(--color-white);
       color: var(--color-black);
       padding: 20px;
@@ -186,6 +246,7 @@
       display: inline-block;
       width: 60px;
       height: 34px;
+      margin: .15rem;
     }
 
     .switch input {
@@ -221,6 +282,16 @@
 
     input:checked + .slider:before {
       transform: translateX(26px);
+    } 
+
+    .switch-with-label {
+      display: flex;
+      align-items: center;
+      /* gap: 0.5rem; */
+    }
+    .toggle-label {
+      font-size: 1rem;
+      user-select: none;
     }
   </style>
 </head>
@@ -231,21 +302,22 @@
   <!-- Main Container -->
   <div class="container">
 
-    <!-- Logo -->
     <div class='logo-container'>
-      <img class='logo' src='https://raw.githubusercontent.com/DutchDevelop/BLLEDController/main/src/www/Icon-square.png' alt='Logo'>
-      <span class='logo-text'>BLFAN Controller</span>
+
+      <div class="fan-stack">
+        <img class="fanshell" src="https://raw.githubusercontent.com/DutchDevelop/BLSmartFlow/main/src/www/smartflow_shell.png" alt="Shell">
+        <img class="fanblades" src="https://raw.githubusercontent.com/DutchDevelop/BLSmartFlow/main/src/www/smartflow_blades.png" alt="Blades">
+      </div>
+      <span class='logo-text'>BL SmartFlow</span>
     </div>
 
-    <!-- Tab Buttons -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="fanGraphTab">Fan Graph</button>
-      <button class="tab-btn" data-tab="toggleTab">Settings</button>
+      <button class="tab-btn active" data-tab="toggleTab">Settings</button>
+      <button class="tab-btn" data-tab="fanGraphTab">Fan Graph</button>
     </div>
 
-    <!-- TAB 1: Fan Graph & Controls -->
-    <div id="fanGraphTab" class="tab-content active">
-      <div class='form-container'>
+    <div id="fanGraphTab" class="tab-content">
+      <div class='fangraph-container'>
         <div class="chart-container">
           <canvas id="myChart"></canvas>
         </div>
@@ -289,47 +361,128 @@
       </div><!-- .form-container -->
     </div>
     
-    <!-- TAB 2: Toggle Buttons -->
-    <div id="toggleTab" class="tab-content">
+    <div id="toggleTab" class="tab-content active">
       <div class="toggles-container">
-        <h2>Some Toggles</h2>
-        <label class="switch">
-          <input type="checkbox" id="toggle1">
-          <span class="slider round"></span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="toggle2">
-          <span class="slider round"></span>
-        </label>
+        <form method='POST' onsubmit='return submitOptions();'>
+          <h1>Settings</h1>
+          <h2>Printer Information</h2>
+
+          <label>Printer IP:</label>
+          <input type='text' id='printerip' name='ip' title='Enter the IP address of your Bambulab Printer' value=''>
+          <label>Printer Access Code:</label>
+          <input type='text' id='printercode' name='code' title='Enter the access code of your Bambulab Printer' value=''>
+          <label>Printer Serial Number:</label>
+          <input type='text' id='printerserial' name='serial' title='Enter the serial Number for your Bambulab Printer' value=''>
+
+          <h2>Features</h2>
+          <div class="switch-with-label">
+            <label class="switch">
+              <input type="checkbox" id="staticfan" name='staticfan'>
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Static Fan Speed</span>
+          </div>
+
+          <input type='text' id='staticfanspeed' name='staticfanspeed' title='fan speed' type="number" min="0" max="100" step="1" placeholder="e.g. 40" >
+
+          <h2>Debuging</h2>
+          <div class="switch-with-label">
+            <label class="switch">
+              <input type="checkbox" id="debuging" name="debuging">
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Bebugging</span>
+          </div>
+          <div class="switch-with-label">
+            <label class="switch">
+              <input type="checkbox" id="debugingchange" name="debugingchange">
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Debug OnChange Events</span>
+          </div>
+          <div class="switch-with-label">
+            <label class="switch">
+              <input type="checkbox" id="mqttdebug" name="mqttdebug">
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">MQTT Logging</span>
+          </div>
+          <input type='submit' value='Save'>
+        </form>
       </div>
     </div>
-
+    <h2 id="firmwareversion">Firmware version: Expirimental ??.??.??</h2>
   </div> <!-- .container -->
 
-  <!-- Tab-Switching Script -->
   <script>
-    // Simple tab switching logic
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    function submitOptions(){
+      event.preventDefault();
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/submitOptions', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+      xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+              alert('Settings saved successfully!');
+          }
+      };
+
+      var formData = new FormData(document.querySelector('form'));
+      var parameters = [];
+      formData.forEach(function(value, key) {
+          parameters.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+      });
+      var body = parameters.join('&');
+      console.log(body);
+      xhr.send(body);
+
+      return false;
+    };
+
+    function updateOptions(){
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var configData = JSON.parse(xhr.responseText);
+              document.getElementById("firmwareversion").textContent = "Firmware Version: "+(configData.firmwareversion || "Unknown version");
+
+              document.getElementById('printerip').value = configData.ip || '';
+              document.getElementById('printercode').value = configData.code || '';
+              document.getElementById('printerserial').value = configData.id || '';
+
+              document.getElementById('staticfan').checked = configData.staticfans || false;
+              document.getElementById('staticfanspeed').value = configData.staticfanspeed || 0;
+
+              document.getElementById('debuging').checked = configData.debuging || false;
+              document.getElementById('debugingchange').checked = configData.debugingchange || false;
+              document.getElementById('mqttdebug').checked = configData.mqttdebug || false;
+          };
+      };
+      xhr.open('GET', '/getOptions', true);
+      xhr.send();
+    };
+
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        // Remove 'active' from all buttons & tab contents
         tabButtons.forEach(b => b.classList.remove('active'));
         tabContents.forEach(tc => tc.classList.remove('active'));
-
-        // Add 'active' to the clicked button
         btn.classList.add('active');
-        // Show the corresponding tab content
         const targetTab = document.getElementById(btn.dataset.tab);
         if (targetTab) {
           targetTab.classList.add('active');
         }
       });
     });
+
+    window.onload = function() {
+      updateOptions();
+    };
   </script>
 
-  <!-- Existing Script for Fan Graph, Data Fetching, Particles, etc. -->
   <script>
     var data = {
       "points": [
@@ -384,12 +537,25 @@
         });
     }
 
+    const blades = document.querySelector('.fanblades');
+
+    function setSpin(speedPercent) {
+      speedPercent = Math.max(0, Math.min(speedPercent, 100));
+      if (speedPercent === 0) {
+        blades.style.animation = 'none';
+      } else {
+        const duration = .5 + ((1 - (speedPercent / 100)) * 4.5);
+        blades.style.animation = `spin ${duration}s linear infinite`;
+      }
+    }
+
     function fetchSensorData(){
       fetch("/sensorData")
       .then(response => response.json())
       .then(json => {
         document.getElementById('tempValue').textContent = json.temp;
         document.getElementById('speedValue').textContent = json.speed;
+        setSpin(json.speed);
       })
       .catch(err => console.error("Error fetching sensor data:", err));
     }

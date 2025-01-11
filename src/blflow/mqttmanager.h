@@ -77,11 +77,11 @@ void connectMqtt(){
             Serial.print(mqttClient.state());
             Serial.print(F("  "));
             ParseMQTTState(mqttClient.state());
-            if(mqttClient.state() == 5){
-                Serial.println(F("Restarting Device"));
-                delay(1000);
-                ESP.restart();                
-            }
+            // if(mqttClient.state() == 5){
+            //     Serial.println(F("Restarting Device"));
+            //     delay(1000);
+            //     ESP.restart();                
+            // }
         }
     }
 }

@@ -52,7 +52,7 @@ char* obfuscate(const char* charstring) {
     return blurredstring; 
 }
 
-void handleGetConfig(){
+void handleGetOptions(){
     if (!isAuthorized()){
         webServer.requestAuthentication();
         return;
@@ -61,22 +61,59 @@ void handleGetConfig(){
     JsonDocument doc;
     const char* firmwareVersionChar = globalVariables.FWVersion.c_str();
     doc["firmwareversion"] = firmwareVersionChar;
-    doc["wifiStrength"] = WiFi.RSSI();
+
     doc["ip"] = printerConfig.printerIP;
     doc["code"] = obfuscate(printerConfig.accessCode);
     doc["id"] = obfuscate(printerConfig.serialNumber);
-    doc["apMAC"] = printerConfig.BSSID;
+
+    doc["staticfans"] = printerConfig.staticFan;
+    doc["staticfanspeed"] = printerConfig.staticFanSpeed;
 
     // Debugging
     doc["debuging"] = printerConfig.debuging;
     doc["debugingchange"] = printerConfig.debugingchange;
     doc["mqttdebug"] = printerConfig.mqttdebug;
 
+
     String jsonString;
     serializeJson(doc, jsonString);
     webServer.send(200, "application/json", jsonString);
 
     Serial.println(F("Packet sent to setuppage"));
+}
+
+void submitOptions(){
+    if (webServer.args() > 0) {
+
+        String ipStr = webServer.arg("ip");
+        String codeStr = webServer.arg("code");
+        String serialStr = webServer.arg("serial");
+
+        if (ipStr.indexOf('*') == -1){
+            strcpy(printerConfig.printerIP,ipStr.c_str());
+        };
+
+        if (codeStr.indexOf('*') == -1){
+            strcpy(printerConfig.accessCode,codeStr.c_str());
+        };
+
+        if (serialStr.indexOf('*') == -1){
+            char temperserial[20];
+            strcpy(temperserial,serialStr.c_str());
+            for (int x=0; x<strlen(temperserial); x++)
+                temperserial[x] = toupper(temperserial[x]);
+            strcpy(printerConfig.serialNumber,temperserial);
+        };
+
+        printerConfig.staticFan = (webServer.arg("staticfan") == "on");
+        printerConfig.staticFanSpeed = webServer.arg("staticfanspeed").toInt();
+
+        printerConfig.debuging = (webServer.arg("debuging") == "on");
+        printerConfig.debugingchange = (webServer.arg("debugingchange") == "on");
+        printerConfig.mqttdebug = (webServer.arg("mqttdebug") == "on");
+        webServer.send(202);
+    };
+    webServer.send(204);
 }
 
 void setupWebserver(){
@@ -90,8 +127,8 @@ void setupWebserver(){
     Serial.println(F("Setting up webserver"));
     
     webServer.on("/", handleSetup);
-    // webServer.on("/submitConfig",HTTP_POST,submitConfig);
-    webServer.on("/getConfig", handleGetConfig);
+    webServer.on("/submitOptions",HTTP_POST,submitOptions);
+    webServer.on("/getOptions", handleGetOptions);
 
     webServer.on("/update", HTTP_POST, []() { //OTA
         webServer.sendHeader("Connection", "close");

@@ -22,9 +22,7 @@ void setup(){
     Serial.println("");
     
     fansetup();
-
     delay(1000);
-
     setupFileSystem();
     loadFileSystem();
     Serial.println(F(""));
@@ -33,7 +31,7 @@ void setup(){
     setupSerial();
 
     if (strlen(globalVariables.SSID) == 0 || strlen(globalVariables.APPW) == 0) {
-        Serial.println(F("SSID or password is missing. Please configure both by going to: https://dutchdevelop.com/blled-configuration-setup/"));
+        Serial.println(F("SSID or password is missing. Please configure both by going to: https://dutchdevelop.com/smartflow-configuration-setup/"));
         return;
     }
    
@@ -57,7 +55,7 @@ void setup(){
 }
 
 void loop(){
-    fanloop(); //Run fanloop at the start of the loop so its alwayts updating before everything else.
+    fanloop(); //Run fanloop at the start of the loop so its always updating before everything else.
     serialLoop();
 
     if (globalVariables.started){

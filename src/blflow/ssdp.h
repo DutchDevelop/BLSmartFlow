@@ -15,7 +15,7 @@ void start_ssdp(){
     SSDP.setName("BLFAN Controller");
     SSDP.setSerialNumber(WiFi.macAddress().c_str());
     SSDP.setURL("/");
-    SSDP.setModelName("BLFAN ESP32");
+    SSDP.setModelName("BLSmartFlow ESP32");
     SSDP.setModelNumber("1.0");
     SSDP.setManufacturer("DutchDeveloper");
     SSDP.setManufacturerURL("https://dutchdevelop.com");

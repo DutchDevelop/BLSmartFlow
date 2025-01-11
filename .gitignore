@@ -9,3 +9,4 @@ BLLEDController.code-workspace
 
 # generated .h files from html
 src/www/setuppage.h
+src/.DS_Store
