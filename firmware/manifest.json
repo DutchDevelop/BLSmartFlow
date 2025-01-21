@@ -1,13 +1,13 @@
 {
-  "name": "BLLED Firmware",
-  "version": "Stable 16.5.24",
-  "new_install_prompt_erase": true,
-  "builds": [
+  "product_name": "BLSmartFlow",
+  "firmwares": [
     {
+      "name": "Stable",
       "chipFamily": "ESP32",
-      "parts": [
-        { "path": "esp32dev/BLLC_16.5.24.bin", "offset": 0 }
-        ]
+      "url": "esp32dev/BLSmartflow_2025.1.21.bin",
+      "version": "2025.1.2"
     }
-  ]
+  ],
+  "new_install_prompt_erase": true,
+  "allow_custom_firmware_upload": true
 }
