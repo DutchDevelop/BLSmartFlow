@@ -27,33 +27,42 @@ void ParseMQTTState(int code){
     {
     case -4: // MQTT_CONNECTION_TIMEOUT
         Serial.println(F("MQTT TIMEOUT"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case -3: // MQTT_CONNECTION_LOST
         Serial.println(F("MQTT CONNECTION_LOST"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case -2: // MQTT_CONNECT_FAILED
         Serial.println(F("MQTT CONNECT_FAILED"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case -1: // MQTT_DISCONNECTED
         Serial.println(F("MQTT DISCONNECTED"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case 0:  // MQTT_CONNECTED
         Serial.println(F("MQTT CONNECTED"));
         break;
     case 1:  // MQTT_CONNECT_BAD_PROTOCOL
         Serial.println(F("MQTT BAD PROTOCOL"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case 2:  // MQTT_CONNECT_BAD_CLIENT_ID
         Serial.println(F("MQTT BAD CLIENT ID"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case 3:  // MQTT_CONNECT_UNAVAILABLE
         Serial.println(F("MQTT UNAVAILABLE"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case 4:  // MQTT_CONNECT_BAD_CREDENTIALS
         Serial.println(F("MQTT BAD CREDENTIALS"));
+        printerVariables.errorcode = "no mqtt";
         break;
     case 5: // MQTT UNAUTHORIZED
         Serial.println(F("MQTT UNAUTHORIZED"));
+        printerVariables.errorcode = "no mqtt";
         break;
     }
 }

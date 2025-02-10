@@ -7,6 +7,7 @@
 #include "./blflow/serialmanager.h"
 #include "./blflow/wifi-manager.h"
 #include "./blflow/ssdp.h"
+#include "./blflow/indicator.h"
 
 int wifi_reconnect_count = 0;
 
@@ -22,6 +23,7 @@ void setup(){
     Serial.println("");
     
     fansetup();
+    indicatorsetup();
     delay(1000);
     setupFileSystem();
     loadFileSystem();
@@ -31,12 +33,14 @@ void setup(){
     setupSerial();
 
     if (strlen(globalVariables.SSID) == 0 || strlen(globalVariables.APPW) == 0) {
+        printerVariables.errorcode = "no config";
         Serial.println(F("SSID or password is missing. Please configure both by going to: https://dutchdevelop.com/smartflow-configuration-setup/"));
         return;
     }
    
     scanNetwork(); //Sets the MAC address for following connection attempt
     if(!connectToWifi()){
+        printerVariables.errorcode = "no wifi";
         return;
     }
 
@@ -56,6 +60,7 @@ void setup(){
 
 void loop(){
     fanloop(); //Run fanloop at the start of the loop so its always updating before everything else.
+    indicatorloop();
     serialLoop();
 
     if (globalVariables.started){
