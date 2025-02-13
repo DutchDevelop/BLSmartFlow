@@ -20,27 +20,31 @@ ErrorPattern errors[] = {
 };
 
 void indicatorloop() {
-    int blinkTimes = 0;
-    for (auto &err : errors) {
-        if (err.error == printerVariables.errorcode) {
-            blinkTimes = err.blinkCount;
-            break;
+    if (printerVariables.errorcode != ""){
+        int blinkTimes = 0;
+        for (auto &err : errors) {
+            if (err.error == printerVariables.errorcode) {
+                blinkTimes = err.blinkCount;
+                break;
+            }
         }
-    }
 
-    if (blinkTimes == 0) {
+        if (blinkTimes == 0) {
+            digitalWrite(LED_PIN, HIGH);
+            return;
+        }
+
+        for (int i = 0; i < blinkTimes; i++) {
+            digitalWrite(LED_PIN, HIGH);
+            delay(baseInterval);
+            digitalWrite(LED_PIN, LOW);
+            delay(baseInterval);
+        }
+
+        delay(baseInterval * 4);
+    }else{
         digitalWrite(LED_PIN, HIGH);
-        return;
     }
-
-    for (int i = 0; i < blinkTimes; i++) {
-        digitalWrite(LED_PIN, HIGH);
-        delay(baseInterval);
-        digitalWrite(LED_PIN, LOW);
-        delay(baseInterval);
-    }
-
-    delay(baseInterval * 4);
 }
 
 void indicatorsetup(){
