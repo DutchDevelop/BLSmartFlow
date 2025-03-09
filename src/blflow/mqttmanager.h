@@ -43,6 +43,10 @@ void ParseMQTTState(int code){
         break;
     case 0:  // MQTT_CONNECTED
         Serial.println(F("MQTT CONNECTED"));
+        if (printerVariables.errorcode == "no mqtt"){
+            //if this routine set the error code, clear it
+            printerVariables.errorcode = "";
+        }
         break;
     case 1:  // MQTT_CONNECT_BAD_PROTOCOL
         Serial.println(F("MQTT BAD PROTOCOL"));

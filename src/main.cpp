@@ -37,13 +37,22 @@ void setup(){
         Serial.println(F("SSID or password is missing. Please configure both by going to: https://dutchdevelop.com/smartflow-configuration-setup/"));
         return;
     }
+    else if (printerVariables.errorcode == "no config"){
+        //if this routine set the error code, clear it
+        printerVariables.errorcode = "";
+    }
+    
    
     scanNetwork(); //Sets the MAC address for following connection attempt
     if(!connectToWifi()){
         printerVariables.errorcode = "no wifi";
         return;
     }
-
+    else if (printerVariables.errorcode == "no wifi"){
+        //if this routine set the error code, clear it
+        printerVariables.errorcode = "";
+    }
+    
     setupWebserver();
     delay(500);
     start_ssdp();
