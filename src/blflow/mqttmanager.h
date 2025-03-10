@@ -43,6 +43,10 @@ void ParseMQTTState(int code){
         break;
     case 0:  // MQTT_CONNECTED
         Serial.println(F("MQTT CONNECTED"));
+        if (printerVariables.errorcode == "no mqtt"){
+            //if this routine set the error code, clear it
+            printerVariables.errorcode = "";
+        }
         break;
     case 1:  // MQTT_CONNECT_BAD_PROTOCOL
         Serial.println(F("MQTT BAD PROTOCOL"));
@@ -80,6 +84,10 @@ void connectMqtt(){
             mqttClient.subscribe(report_topic.c_str());
             printerVariables.online = true;
             printerVariables.disconnectMQTTms = 0;
+            if (printerVariables.errorcode == "no mqtt"){
+                //if this routine set the error code, clear it
+                printerVariables.errorcode = "";
+            }
             //Serial.println(F("Updating LEDs from MQTT connect"));
         }else{
             Serial.println(F("Failed to connect with error code: "));
