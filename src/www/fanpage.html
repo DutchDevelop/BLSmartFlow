@@ -356,6 +356,7 @@
         </div>
         <div class="section">
           <div>Nozzle Temperature: <span id="tempValue">-</span> °C</div>
+          <div>Chamber Temperature: <span id="chambertempValue">-</span> °C</div>
           <div>Fan Speed: <span id="speedValue">-</span> %</div>
         </div>
       </div><!-- .form-container -->
@@ -373,6 +374,14 @@
           <input type='text' id='printercode' name='code' title='Enter the access code of your Bambulab Printer' value=''>
           <label>Printer Serial Number:</label>
           <input type='text' id='printerserial' name='serial' title='Enter the serial Number for your Bambulab Printer' value=''>
+          
+          <div class="switch-with-label">
+            <label class="switch">
+              <input type="checkbox" id="chambertempswitch" name='chambertempswitch'>
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Use Chamber Temp</span>
+          </div>
 
           <h2>Features</h2>
           <div class="switch-with-label">
@@ -453,6 +462,7 @@
               document.getElementById('printerip').value = configData.ip || '';
               document.getElementById('printercode').value = configData.code || '';
               document.getElementById('printerserial').value = configData.id || '';
+              document.getElementById('chambertempswitch').checked = configData.chambertempswitch || false;
 
               document.getElementById('staticfan').checked = configData.staticfans || false;
               document.getElementById('staticfanspeed').value = configData.staticfanspeed || 0;
@@ -555,6 +565,7 @@
       .then(json => {
         document.getElementById('tempValue').textContent = json.temp;
         document.getElementById('speedValue').textContent = json.speed;
+        document.getElementById('chambertempValue').textContent = json.chambertemp;
         setSpin(json.speed);
       })
       .catch(err => console.error("Error fetching sensor data:", err));

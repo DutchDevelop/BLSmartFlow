@@ -7,9 +7,10 @@ extern "C"
 #endif
 
     typedef struct PrinterVaraiblesStruct{
-        int chamberfan = 0;
-        double nozzletemp = 0;
+        int chamberfan = 0; // Chamber fan speed
+        double nozzletemp = 0; // Nozzle temperature 
         bool online = false;
+        double chambertemp = 0; // Chamber temperature
         String errorcode = "";
         //Time since
         unsigned long disconnectMQTTms = 0;        
@@ -40,6 +41,8 @@ extern "C"
         bool debugingchange = true;     //Default debugging level - to shows onChange
         bool mqttdebug = false;         //Writes each packet from BBLP to the serial log
 
+        bool chamberTempSwitch = false; //Switch from nozzle temp to chamber temp (X1 only)
+        
         bool staticFan = false;  
         int staticFanSpeed = 0;
 
