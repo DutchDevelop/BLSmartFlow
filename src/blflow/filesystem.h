@@ -22,6 +22,7 @@ void saveFileSystem(){
     
     json["bssi"] = printerConfig.BSSID;
     // Debugging
+    json["chambertempswitch"] = printerConfig.chamberTempSwitch;
     json["debuging"] = printerConfig.debuging;
     json["debugingchange"] = printerConfig.debugingchange;
     json["mqttdebug"] = printerConfig.mqttdebug;
@@ -81,6 +82,8 @@ void loadFileSystem(){
         strcpy(printerConfig.accessCode, json["accessCode"]);
         strcpy(printerConfig.serialNumber, json["serialNumber"]);
         strcpy(printerConfig.BSSID, json["bssi"]);
+        
+        printerConfig.chamberTempSwitch, json["chambertempswitch"];
 
         // Debugging
         printerConfig.debuging = json["debuging"];

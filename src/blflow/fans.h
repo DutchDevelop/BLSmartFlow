@@ -6,6 +6,7 @@
 const int FanPower1 = 17;
 const int FanPower2 = 16;
 
+
 int fanSpeed = 0; 
 
 void fansetup(){
@@ -14,8 +15,15 @@ void fansetup(){
 }
 
 void fanloop(){
-
-    float temperature = printerVariables.nozzletemp;
+    float temperature = 0;
+    // IF enabled then user the chamber temperature
+    if (printerConfig.chamberTempSwitch) {
+        temperature = printerVariables.chambertemp;
+    }
+    // otherwise use the nozzle temperature
+   else {
+    temperature = printerVariables.nozzletemp;
+    }
 
     fanSpeed = 0;
     for (size_t i = 1; i < printerConfig.fanGraph.size(); i++) {
@@ -36,6 +44,7 @@ void fanloop(){
         fanSpeed = printerConfig.staticFanSpeed;
     }
 
+    
     int rpm = map(fanSpeed, 0, 100, 0, 255);
 
     globalVariables.fanSpeed = fanSpeed;

@@ -123,6 +123,7 @@ void ParseCallback(char *topic, byte *payload, unsigned int length){
     // filter["system"]["led_mode"] =  true;
     filter["print"]["fan_gear"] = true;
     filter["print"]["nozzle_temper"] = true;
+    filter["print"]["chamber_temper"] = true; //get the chamber temperatrue
 
     auto deserializeError = deserializeJson(messageobject, payload, length, DeserializationOption::Filter(filter));
     if (!deserializeError){
@@ -162,6 +163,13 @@ void ParseCallback(char *topic, byte *payload, unsigned int length){
         if (messageobject["print"].containsKey("nozzle_temper"))
         {
             printerVariables.nozzletemp = messageobject["print"]["nozzle_temper"].as<double>();
+            Changed = true;
+        }
+
+        // If this is an X1 printer then add the chamber temperature
+        if (messageobject["print"].containsKey("chamber_temper"))
+        {
+            printerVariables.chambertemp = messageobject["print"]["chamber_temper"].as<double>();
             Changed = true;
         }
 
