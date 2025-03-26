@@ -66,6 +66,8 @@ void handleGetOptions(){
     doc["code"] = obfuscate(printerConfig.accessCode);
     doc["id"] = obfuscate(printerConfig.serialNumber);
 
+    doc["chambertempswitch"] = printerConfig.chamberTempSwitch;
+    
     doc["staticfans"] = printerConfig.staticFan;
     doc["staticfanspeed"] = printerConfig.staticFanSpeed;
 
@@ -105,6 +107,7 @@ void submitOptions(){
             strcpy(printerConfig.serialNumber,temperserial);
         };
 
+        printerConfig.chamberTempSwitch = (webServer.arg("chambertempswitch") == "on");
         printerConfig.staticFan = (webServer.arg("staticfan") == "on");
         printerConfig.staticFanSpeed = webServer.arg("staticfanspeed").toInt();
 
@@ -203,8 +206,9 @@ void setupWebserver(){
 
     webServer.on("/sensorData", HTTP_GET, []() { //Send Current Sensor Info
         String jsonResponse = "{";
-        jsonResponse += "\"temp\":" + String(printerVariables.nozzletemp, 2) + ",";  // 2 decimal places
-        jsonResponse += "\"speed\":" + String(globalVariables.fanSpeed);
+        jsonResponse += "\"temp\":" + String(printerVariables.nozzletemp, 2) + ",";  // nozzle temp to 2 decimal places
+        jsonResponse += "\"chambertemp\":" + String(printerVariables.chambertemp, 2) + ",";  // chamber temp to 2 decimal places
+        jsonResponse += "\"speed\":" + String(globalVariables.fanSpeed); // fan speed 
         jsonResponse += "}";
 
         webServer.send(200, "application/json", jsonResponse);
