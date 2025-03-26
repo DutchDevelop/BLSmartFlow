@@ -83,7 +83,7 @@ void loadFileSystem(){
         strcpy(printerConfig.serialNumber, json["serialNumber"]);
         strcpy(printerConfig.BSSID, json["bssi"]);
         
-        printerConfig.chamberTempSwitch, json["chambertempswitch"];
+        printerConfig.chamberTempSwitch = json["chambertempswitch"];
 
         // Debugging
         printerConfig.debuging = json["debuging"];
